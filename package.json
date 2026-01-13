@@ -1,0 +1,33 @@
+{
+  "name": "puzzle-print",
+  "version": "1.0.0",
+  "description": "拼图打印应用 - 支持图片导入、拼图参数调整、Three.js模型展示和3MF导出",
+  "private": true,
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^9.0.4",
+    "react-scripts": "5.0.1",
+    "three": "^0.160.0",
+    "jszip": "^3.10.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
