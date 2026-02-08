@@ -27,7 +27,23 @@ const initialState = {
   modelSelected: false,
   // 导出状态
   exportStatus: 'idle', // idle | exporting | success | error
-  exportError: null
+  exportError: null,
+
+  // === 拼图游戏状态 ===
+  // 游戏模式: false=普通立方体展示, true=拼图游戏模式
+  puzzleGameMode: false,
+  // 拼图是否已打散
+  puzzleScattered: false,
+  // 难度模式: 'easy' | 'hard'
+  difficultyMode: 'easy',
+  // 吸附距离容差 (简单模式固定值=20, 困难模式可调)
+  snapDistance: 20,
+  // 困难模式的自定义吸附距离
+  hardSnapDistance: 5,
+  // 当前选中的拼图块索引 (-1 表示未选中)
+  selectedPieceIndex: -1,
+  // 拼图块的位置和旋转状态 [{ x, y, z, rotation }]
+  pieceTransforms: []
 };
 
 // 创建slice
@@ -106,6 +122,63 @@ const puzzleSlice = createSlice({
       state.exportError = action.payload;
     },
 
+    // === 拼图游戏 actions ===
+
+    // 切换拼图游戏模式
+    setPuzzleGameMode: (state, action) => {
+      state.puzzleGameMode = action.payload;
+      if (!action.payload) {
+        // 退出游戏模式时重置
+        state.puzzleScattered = false;
+        state.selectedPieceIndex = -1;
+        state.pieceTransforms = [];
+      }
+    },
+
+    // 设置拼图打散状态
+    setPuzzleScattered: (state, action) => {
+      state.puzzleScattered = action.payload;
+    },
+
+    // 设置难度模式
+    setDifficultyMode: (state, action) => {
+      state.difficultyMode = action.payload;
+      if (action.payload === 'easy') {
+        state.snapDistance = 20;
+      } else {
+        state.snapDistance = state.hardSnapDistance;
+      }
+    },
+
+    // 设置吸附距离（困难模式滑块）
+    setSnapDistance: (state, action) => {
+      state.hardSnapDistance = action.payload;
+      if (state.difficultyMode === 'hard') {
+        state.snapDistance = action.payload;
+      }
+    },
+
+    // 设置选中的拼图块
+    setSelectedPieceIndex: (state, action) => {
+      state.selectedPieceIndex = action.payload;
+    },
+
+    // 设置所有拼图块的变换状态
+    setPieceTransforms: (state, action) => {
+      state.pieceTransforms = action.payload;
+    },
+
+    // 更新单个拼图块的变换
+    updatePieceTransform: (state, action) => {
+      const { index, transform } = action.payload;
+      if (state.pieceTransforms[index]) {
+        state.pieceTransforms[index] = {
+          ...state.pieceTransforms[index],
+          ...transform
+        };
+      }
+    },
+
     // 重置所有状态
     resetState: () => initialState
   }
@@ -123,6 +196,13 @@ export const {
   setModelSelected,
   setExportStatus,
   setExportError,
+  setPuzzleGameMode,
+  setPuzzleScattered,
+  setDifficultyMode,
+  setSnapDistance,
+  setSelectedPieceIndex,
+  setPieceTransforms,
+  updatePieceTransform,
   resetState
 } = puzzleSlice.actions;
 
@@ -149,5 +229,14 @@ export const selectModelSelected = (state) => state.puzzle.modelSelected;
 
 // 选择器 - 获取导出状态
 export const selectExportStatus = (state) => state.puzzle.exportStatus;
+
+// 选择器 - 拼图游戏相关
+export const selectPuzzleGameMode = (state) => state.puzzle.puzzleGameMode;
+export const selectPuzzleScattered = (state) => state.puzzle.puzzleScattered;
+export const selectDifficultyMode = (state) => state.puzzle.difficultyMode;
+export const selectSnapDistance = (state) => state.puzzle.snapDistance;
+export const selectHardSnapDistance = (state) => state.puzzle.hardSnapDistance;
+export const selectSelectedPieceIndex = (state) => state.puzzle.selectedPieceIndex;
+export const selectPieceTransforms = (state) => state.puzzle.pieceTransforms;
 
 export default puzzleSlice.reducer;

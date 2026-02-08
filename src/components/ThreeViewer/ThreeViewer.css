@@ -36,6 +36,11 @@
   color: #fff;
 }
 
+.info-item.game-mode {
+  background: rgba(99, 102, 241, 0.9);
+  color: #fff;
+}
+
 /* 控制提示 */
 .viewer-controls-hint {
   position: absolute;

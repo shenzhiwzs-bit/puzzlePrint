@@ -1,0 +1,219 @@
+/**
+ * 拼图游戏控制组件样式
+ */
+
+.game-controls {
+  position: absolute;
+  bottom: 60px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 100;
+}
+
+/* 游戏模式切换按钮 */
+.game-mode-toggle {
+  margin-bottom: 8px;
+}
+
+.mode-button {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  transition: all 0.3s ease;
+}
+
+.mode-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.mode-button.active {
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.mode-button.active:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* 难度选择 */
+.difficulty-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.difficulty-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  background: #f3f4f6;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.difficulty-btn:hover {
+  background: #e5e7eb;
+}
+
+.difficulty-btn.active {
+  color: #fff;
+  background: #4a90d9;
+  border-color: #3b82f6;
+}
+
+/* 吸附距离滑块 */
+.snap-slider {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+}
+
+.snap-slider label {
+  font-size: 11px;
+  color: #888;
+}
+
+.snap-slider input[type="range"] {
+  width: 150px;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e5e7eb;
+  border-radius: 3px;
+  outline: none;
+}
+
+.snap-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #4a90d9;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.snap-slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.snap-info {
+  font-size: 11px;
+  color: #888;
+}
+
+/* 打散/拼合按钮 */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.scatter-btn {
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.scatter-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.assemble-btn {
+  color: #fff;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.assemble-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .game-controls {
+    bottom: 50px;
+    right: 10px;
+    left: 10px;
+    align-items: stretch;
+  }
+
+  .mode-button {
+    width: 100%;
+    padding: 12px 16px;
+  }
+
+  .difficulty-section {
+    align-items: stretch;
+  }
+
+  .difficulty-buttons {
+    justify-content: center;
+  }
+
+  .snap-slider {
+    align-items: stretch;
+  }
+
+  .snap-slider input[type="range"] {
+    width: 100%;
+  }
+
+  .action-buttons {
+    justify-content: center;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 12px 16px;
+  }
+}
