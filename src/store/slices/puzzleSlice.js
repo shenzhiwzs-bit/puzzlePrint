@@ -7,9 +7,12 @@ import { createSlice } from '@reduxjs/toolkit';
 // 初始状态
 const initialState = {
   // 图片列表 - 存储所有导入的图片 { id, name, url, thumbnail }
-  images: [],
+  images: [{
+    url: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.8qzxsRaxMNcJL_a-SVUsIwAAAA?w=121&h=181&c=7&r=0&o=7&dpr=2&pid=1.7&rm=3',
+    id: 'test-image-1',
+  }],
   // 当前选中的图片ID
-  selectedImageId: null,
+  selectedImageId: 'test-image-1',
   // 预览大图的图片ID
   previewImageId: null,
   // 拼图参数配置
@@ -90,23 +93,25 @@ const puzzleSlice = createSlice({
     },
 
     // 更新拼图参数
-    updatePuzzleParams: (state, action) => {
-      state.puzzleParams = {
-        ...state.puzzleParams,
-        ...action.payload
-      };
-    },
+    // updatePuzzleParams: (state, action) => {
+    //   state.puzzleParams = {
+    //     ...state.puzzleParams,
+    //     ...action.payload
+    //   };
+    // },
 
     // 设置单个参数
     setParam: (state, action) => {
       const { key, value } = action.payload;
       state.puzzleParams[key] = value;
+      state.pieceTransforms = []; // 参数变化时重置拼图块状态
+      state.selectedPieceIndex = -1;
     },
 
     // 设置模型选中状态
-    setModelSelected: (state, action) => {
-      state.modelSelected = action.payload;
-    },
+    // setModelSelected: (state, action) => {
+    //   state.modelSelected = action.payload;
+    // },
 
     // 设置导出状态
     setExportStatus: (state, action) => {
@@ -125,15 +130,15 @@ const puzzleSlice = createSlice({
     // === 拼图游戏 actions ===
 
     // 切换拼图游戏模式
-    setPuzzleGameMode: (state, action) => {
-      state.puzzleGameMode = action.payload;
-      if (!action.payload) {
-        // 退出游戏模式时重置
-        state.puzzleScattered = false;
-        state.selectedPieceIndex = -1;
-        state.pieceTransforms = [];
-      }
-    },
+    // setPuzzleGameMode: (state, action) => {
+    //   state.puzzleGameMode = action.payload;
+    //   if (!action.payload) {
+    //     // 退出游戏模式时重置
+    //     state.puzzleScattered = false;
+    //     state.selectedPieceIndex = -1;
+    //     state.pieceTransforms = [];
+    //   }
+    // },
 
     // 设置拼图打散状态
     setPuzzleScattered: (state, action) => {
@@ -191,9 +196,9 @@ export const {
   selectImage,
   setPreviewImage,
   closePreview,
-  updatePuzzleParams,
+  // updatePuzzleParams,
   setParam,
-  setModelSelected,
+  // setModelSelected,
   setExportStatus,
   setExportError,
   setPuzzleGameMode,

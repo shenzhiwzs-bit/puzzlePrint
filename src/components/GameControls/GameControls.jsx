@@ -5,12 +5,10 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  selectPuzzleGameMode,
   selectPuzzleScattered,
   selectDifficultyMode,
   selectSnapDistance,
   selectHardSnapDistance,
-  setPuzzleGameMode,
   setDifficultyMode,
   setSnapDistance
 } from '../../store/slices/puzzleSlice';
@@ -18,16 +16,10 @@ import './GameControls.css';
 
 const GameControls = ({ onScatter, onAssemble }) => {
   const dispatch = useDispatch();
-  const gameMode = useSelector(selectPuzzleGameMode);
   const scattered = useSelector(selectPuzzleScattered);
   const difficultyMode = useSelector(selectDifficultyMode);
   const snapDistance = useSelector(selectSnapDistance);
   const hardSnapDistance = useSelector(selectHardSnapDistance);
-
-  // 切换游戏模式
-  const handleToggleGameMode = () => {
-    dispatch(setPuzzleGameMode(!gameMode));
-  };
 
   // 切换难度模式
   const handleDifficultyChange = (mode) => {
@@ -42,17 +34,17 @@ const GameControls = ({ onScatter, onAssemble }) => {
   return (
     <div className="game-controls">
       {/* 游戏模式切换按钮 */}
-      <div className="game-mode-toggle">
+      {/* <div className="game-mode-toggle">
         <button
           className={`mode-button ${gameMode ? 'active' : ''}`}
           onClick={handleToggleGameMode}
         >
           {gameMode ? '退出游戏模式' : '进入游戏模式'}
         </button>
-      </div>
+      </div> */}
 
       {/* 游戏模式下的控制选项 */}
-      {gameMode && (
+      {(
         <>
           {/* 难度选择 */}
           <div className="difficulty-section">

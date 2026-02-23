@@ -22,13 +22,14 @@ import * as THREE from 'three';
  * @param {number} amplitude - 偏移幅度（默认按拼图块尺寸自适应）
  * @returns {number} 偏移量
  */
-const splitOffset = (t, mode, amplitude = 3) => {
+const splitOffset = (i, segments, mode, amplitude = 3) => {
   switch (mode) {
     case 'wave':
-      return Math.sin(t * Math.PI * 4) * amplitude;
+      const t = i / segments;
+      return Math.sin(t * Math.PI * 16) * amplitude;
     case 'zigzag': {
-      const zt = (t * 8) % 1;
-      return (zt < 0.5 ? zt * 2 : (1 - zt) * 2) * amplitude - amplitude * 0.5;
+      const zt = i % 4;
+      return zt === 1 ? amplitude : zt === 3 ? -amplitude : 0;
     }
     default: // straight
       return 0;
@@ -44,12 +45,19 @@ const splitOffset = (t, mode, amplitude = 3) => {
  * 从 (xStart, Y) 到 (xEnd, Y)，splitMode 的偏移施加在 Y 方向
  * @returns {THREE.Vector2[]}
  */
-const generateHorizontalEdge = (xStart, xEnd, Y, splitMode, amplitude, segments = 30) => {
+const generateHorizontalEdge = (xStart, xEnd, Y, splitMode, amplitude, top = false, segments = 72) => {
   const pts = [];
+  if (splitMode === 'straight') {
+    pts.push(new THREE.Vector2(xStart, Y));
+    pts.push(new THREE.Vector2(xEnd, Y));
+    return pts;
+  } else if (splitMode === 'zigzag') {
+    segments = 36; // 垂直边更短，减少锯齿段数
+  }
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     const x = xStart + (xEnd - xStart) * t;
-    const y = Y + splitOffset(t, splitMode, amplitude);
+    const y = Y + splitOffset(i, segments, splitMode, amplitude) * (top ? -1 : 1);
     pts.push(new THREE.Vector2(x, y));
   }
   return pts;
@@ -60,12 +68,19 @@ const generateHorizontalEdge = (xStart, xEnd, Y, splitMode, amplitude, segments 
  * 从 (X, yStart) 到 (X, yEnd)，splitMode 的偏移施加在 X 方向
  * @returns {THREE.Vector2[]}
  */
-const generateVerticalEdge = (X, yStart, yEnd, splitMode, amplitude, segments = 30) => {
+const generateVerticalEdge = (X, yStart, yEnd, splitMode, amplitude, left = false, segments = 72) => {
   const pts = [];
+  if (splitMode === 'straight') {
+    pts.push(new THREE.Vector2(X, yStart));
+    pts.push(new THREE.Vector2(X, yEnd));
+    return pts;
+  } else if (splitMode === 'zigzag') {
+    segments = 36; // 垂直边更短，减少锯齿段数
+  }
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     const y = yStart + (yEnd - yStart) * t;
-    const x = X + splitOffset(t, splitMode, amplitude);
+    const x = X + splitOffset(i, segments, splitMode, amplitude) * (left ? -1 : 1);
     pts.push(new THREE.Vector2(x, y));
   }
   return pts;
@@ -84,7 +99,7 @@ export const createPieceShape = (col, row, params) => {
   const pieceH = height / gridY;
 
   // 偏移幅度自适应拼图块大小，取短边的 8%
-  const amplitude = Math.min(pieceW, pieceH) * 0.08;
+  const amplitude = Math.min(pieceW, pieceH) * 0.02;
 
   // 拼图块在全局坐标中的四个角
   const xLeft = -halfW + col * pieceW;
@@ -98,45 +113,51 @@ export const createPieceShape = (col, row, params) => {
 
   // ---- 收集轮廓点（顺时针方向，从左下角开始） ----
   const outline = [];
+  const cornerPts = [];
 
   // 底边：从左到右（如果 row===0 则为外边界→直线）
   if (row === 0) {
     outline.push(new THREE.Vector2(xLeft, yBottom));
     outline.push(new THREE.Vector2(xRight, yBottom));
   } else {
-    const pts = generateHorizontalEdge(xLeft, xRight, yBottom, splitMode, amplitude);
+    const pts = generateHorizontalEdge(xLeft, xRight, yBottom, splitMode, amplitude, false);
     outline.push(...pts);
   }
+  cornerPts.push(outline[0]); // 记录第一个点
+  cornerPts.push(outline[outline.length - 1]); // 记录最后一个点
 
   // 右边：从下到上
   if (col === gridX - 1) {
     // 外边界→直线（第一个点与前面最后一个重复，跳过）
     outline.push(new THREE.Vector2(xRight, yTop));
   } else {
-    const pts = generateVerticalEdge(xRight, yBottom, yTop, splitMode, amplitude);
+    const pts = generateVerticalEdge(xRight, yBottom, yTop, splitMode, amplitude, true);
     // 跳过第一个点（与底边最后一个重复）
     outline.push(...pts.slice(1));
   }
+  cornerPts.push(outline[outline.length - 1]); // 记录最后一个点
 
   // 顶边：从右到左（反向）
   if (row === gridY - 1) {
     outline.push(new THREE.Vector2(xLeft, yTop));
   } else {
-    const pts = generateHorizontalEdge(xRight, xLeft, yTop, splitMode, amplitude);
+    const pts = generateHorizontalEdge(xRight, xLeft, yTop, splitMode, amplitude, true);
     outline.push(...pts.slice(1));
   }
+  cornerPts.push(outline[outline.length - 1]); // 记录最后一个点
 
   // 左边：从上到下（反向）
   if (col === 0) {
     // 最后闭合回起点，Shape 会自动闭合，不需要加
   } else {
-    const pts = generateVerticalEdge(xLeft, yTop, yBottom, splitMode, amplitude);
+    const pts = generateVerticalEdge(xLeft, yTop, yBottom, splitMode, amplitude, false);
     // 跳过第一个和最后一个（与顶边尾/底边头重复）
     outline.push(...pts.slice(1, -1));
   }
 
   // ---- 将全局坐标平移到以 piece 中心为原点 ----
   const localPts = outline.map(p => new THREE.Vector2(p.x - centerX, p.y - centerY));
+  const localCornerPts = cornerPts.map(p => new THREE.Vector2(p.x - centerX, p.y - centerY));
 
   const shape = new THREE.Shape();
   shape.moveTo(localPts[0].x, localPts[0].y);
@@ -145,7 +166,7 @@ export const createPieceShape = (col, row, params) => {
   }
   shape.closePath();
 
-  return { shape, centerX, centerY };
+  return { shape, centerX, centerY, pts: localPts, cornerPts: localCornerPts };
 };
 
 /* ------------------------------------------------------------------ */
@@ -210,6 +231,7 @@ export const generateAllPieces = (params) => {
 
   for (let row = 0; row < gridY; row++) {
     for (let col = 0; col < gridX; col++) {
+      const shapeData = createPieceShape(col, row, params);
       const { geometry, centerX, centerY } = createPieceGeometry(col, row, params);
 
       // 计算邻接关系
@@ -220,7 +242,17 @@ export const generateAllPieces = (params) => {
         top: row < gridY - 1 ? (row + 1) * gridX + col : -1
       };
 
-      pieces.push({ geometry, centerX, centerY, col, row, index, neighbors });
+      pieces.push({ 
+        geometry, 
+        centerX, 
+        centerY, 
+        col, 
+        row, 
+        index, 
+        neighbors,
+        pts: shapeData.pts,           // 记录底部轮廓点
+        cornerPts: shapeData.cornerPts // 记录四个角的点
+      });
       index++;
     }
   }

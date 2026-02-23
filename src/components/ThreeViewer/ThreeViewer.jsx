@@ -6,11 +6,12 @@ import React, { useRef, useEffect, useCallback, forwardRef, useImperativeHandle 
 import { useSelector, useDispatch } from 'react-redux';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { Line2 } from 'three/examples/jsm/lines/Line2';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import {
   selectSelectedImage,
   selectPuzzleParams,
-  setModelSelected,
-  selectPuzzleGameMode,
   selectPuzzleScattered,
   selectSnapDistance,
   selectSelectedPieceIndex,
@@ -46,12 +47,11 @@ const ThreeViewer = forwardRef((props, ref) => {
   const isDraggingRef = useRef(false);
   const dragPlaneRef = useRef(null);
   const dragOffsetRef = useRef(new THREE.Vector3());
+  const mouseDownPosRef = useRef({ x: 0, y: 0 }); // 记录鼠标按下位置
 
   const dispatch = useDispatch();
   const selectedImage = useSelector(selectSelectedImage);
   const params = useSelector(selectPuzzleParams);
-  const modelSelected = useSelector(state => state.puzzle.modelSelected);
-  const gameMode = useSelector(selectPuzzleGameMode);
   const scattered = useSelector(selectPuzzleScattered);
   const snapDistance = useSelector(selectSnapDistance);
   const selectedPieceIndex = useSelector(selectSelectedPieceIndex);
@@ -96,8 +96,8 @@ const ThreeViewer = forwardRef((props, ref) => {
     rendererRef.current = renderer;
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    // controls.enableDamping = true;
+    // controls.dampingFactor = 0.05;
     controls.minDistance = 50;
     controls.maxDistance = 1000;
     controlsRef.current = controls;
@@ -154,145 +154,145 @@ const ThreeViewer = forwardRef((props, ref) => {
   }, []);
 
   // 创建普通立方体
-  const createCube = useCallback(() => {
-    if (!sceneRef.current) return;
+  // const createCube = useCallback(() => {
+  //   if (!sceneRef.current) return;
 
-    // 清理旧立方体
-    if (cubeRef.current) {
-      sceneRef.current.remove(cubeRef.current);
-      cubeRef.current.geometry.dispose();
-      cubeRef.current.material.forEach(m => {
-        if (m.map) m.map.dispose();
-        m.dispose();
-      });
-      cubeRef.current = null;
-    }
+  //   // 清理旧立方体
+  //   if (cubeRef.current) {
+  //     sceneRef.current.remove(cubeRef.current);
+  //     cubeRef.current.geometry.dispose();
+  //     cubeRef.current.material.forEach(m => {
+  //       if (m.map) m.map.dispose();
+  //       m.dispose();
+  //     });
+  //     cubeRef.current = null;
+  //   }
 
-    // 清理分割线
-    if (splitLinesRef.current) {
-      sceneRef.current.remove(splitLinesRef.current);
-      splitLinesRef.current.geometry.dispose();
-      splitLinesRef.current.material.dispose();
-      splitLinesRef.current = null;
-    }
+  //   // 清理分割线
+  //   if (splitLinesRef.current) {
+  //     sceneRef.current.remove(splitLinesRef.current);
+  //     splitLinesRef.current.geometry.dispose();
+  //     splitLinesRef.current.material.dispose();
+  //     splitLinesRef.current = null;
+  //   }
 
-    const geometry = new THREE.BoxGeometry(params.width, params.height, params.depth);
+  //   const geometry = new THREE.BoxGeometry(params.width, params.height, params.depth);
 
-    const sideMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(params.sideColor),
-      roughness: 0.5,
-      metalness: 0.1
-    });
+  //   const sideMaterial = new THREE.MeshStandardMaterial({
+  //     color: new THREE.Color(params.sideColor),
+  //     roughness: 0.5,
+  //     metalness: 0.1
+  //   });
 
-    const bottomMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(params.bottomColor),
-      roughness: 0.7,
-      metalness: 0.0
-    });
+  //   const bottomMaterial = new THREE.MeshStandardMaterial({
+  //     color: new THREE.Color(params.bottomColor),
+  //     roughness: 0.7,
+  //     metalness: 0.0
+  //   });
 
-    let topMaterial;
-    if (selectedImage) {
-      const textureLoader = new THREE.TextureLoader();
-      const texture = textureLoader.load(selectedImage.url);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      topMaterial = new THREE.MeshStandardMaterial({
-        map: texture,
-        roughness: 0.5,
-        metalness: 0.0
-      });
-    } else {
-      topMaterial = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.5,
-        metalness: 0.0
-      });
-    }
+  //   let topMaterial;
+  //   if (selectedImage) {
+  //     const textureLoader = new THREE.TextureLoader();
+  //     const texture = textureLoader.load(selectedImage.url);
+  //     texture.colorSpace = THREE.SRGBColorSpace;
+  //     topMaterial = new THREE.MeshStandardMaterial({
+  //       map: texture,
+  //       roughness: 0.5,
+  //       metalness: 0.0
+  //     });
+  //   } else {
+  //     topMaterial = new THREE.MeshStandardMaterial({
+  //       color: 0xffffff,
+  //       roughness: 0.5,
+  //       metalness: 0.0
+  //     });
+  //   }
 
-    const materials = [
-      sideMaterial.clone(),
-      sideMaterial.clone(),
-      sideMaterial.clone(),
-      sideMaterial.clone(),
-      topMaterial,
-      bottomMaterial
-    ];
+  //   const materials = [
+  //     sideMaterial.clone(),
+  //     sideMaterial.clone(),
+  //     sideMaterial.clone(),
+  //     sideMaterial.clone(),
+  //     topMaterial,
+  //     bottomMaterial
+  //   ];
 
-    const cube = new THREE.Mesh(geometry, materials);
-    cube.position.set(0, 0, params.depth / 2);
-    sceneRef.current.add(cube);
-    cubeRef.current = cube;
+  //   const cube = new THREE.Mesh(geometry, materials);
+  //   cube.position.set(0, 0, params.depth / 2);
+  //   sceneRef.current.add(cube);
+  //   cubeRef.current = cube;
 
-    // 创建分割线
-    createSplitLines();
-  }, [params, selectedImage]);
+  //   // 创建分割线
+  //   createSplitLines();
+  // }, [params, selectedImage]);
 
   // 创建分割线
-  const createSplitLines = useCallback(() => {
-    if (!sceneRef.current) return;
+  // const createSplitLines = useCallback(() => {
+  //   if (!sceneRef.current) return;
 
-    const oldLines = sceneRef.current.getObjectByName('splitLines');
-    if (oldLines) {
-      sceneRef.current.remove(oldLines);
-      oldLines.geometry.dispose();
-      oldLines.material.dispose();
-    }
+  //   const oldLines = sceneRef.current.getObjectByName('splitLines');
+  //   if (oldLines) {
+  //     sceneRef.current.remove(oldLines);
+  //     oldLines.geometry.dispose();
+  //     oldLines.material.dispose();
+  //   }
 
-    const { width, height, depth, gridX, gridY, splitMode } = params;
-    const points = [];
-    const halfWidth = width / 2;
-    const halfHeight = height / 2;
-    const topZ = depth + 0.1;
+  //   const { width, height, depth, gridX, gridY, splitMode } = params;
+  //   const points = [];
+  //   const halfWidth = width / 2;
+  //   const halfHeight = height / 2;
+  //   const topZ = depth + 0.1;
 
-    const generateLinePath = (start, end, segments = 20) => {
-      const path = [];
-      for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        const x = start.x + (end.x - start.x) * t;
-        const y = start.y + (end.y - start.y) * t;
+  //   const generateLinePath = (start, end, segments = 20) => {
+  //     const path = [];
+  //     for (let i = 0; i <= segments; i++) {
+  //       const t = i / segments;
+  //       const x = start.x + (end.x - start.x) * t;
+  //       const y = start.y + (end.y - start.y) * t;
 
-        let offset = 0;
-        if (splitMode === 'wave') {
-          offset = Math.sin(t * Math.PI * 4) * 3;
-        } else if (splitMode === 'zigzag') {
-          const zigzagT = (t * 8) % 1;
-          offset = zigzagT < 0.5 ? zigzagT * 6 : (1 - zigzagT) * 6;
-          offset -= 1.5;
-        }
+  //       let offset = 0;
+  //       if (splitMode === 'wave') {
+  //         offset = Math.sin(t * Math.PI * 4) * 3;
+  //       } else if (splitMode === 'zigzag') {
+  //         const zigzagT = (t * 8) % 1;
+  //         offset = zigzagT < 0.5 ? zigzagT * 6 : (1 - zigzagT) * 6;
+  //         offset -= 1.5;
+  //       }
 
-        if (start.x === end.x) {
-          path.push(new THREE.Vector3(x + offset, y, topZ));
-        } else {
-          path.push(new THREE.Vector3(x, y + offset, topZ));
-        }
-      }
-      return path;
-    };
+  //       if (start.x === end.x) {
+  //         path.push(new THREE.Vector3(x + offset, y, topZ));
+  //       } else {
+  //         path.push(new THREE.Vector3(x, y + offset, topZ));
+  //       }
+  //     }
+  //     return path;
+  //   };
 
-    for (let i = 1; i < gridX; i++) {
-      const x = -halfWidth + (width / gridX) * i;
-      const linePath = generateLinePath({ x, y: -halfHeight }, { x, y: halfHeight });
-      for (let j = 0; j < linePath.length - 1; j++) {
-        points.push(linePath[j], linePath[j + 1]);
-      }
-    }
+  //   for (let i = 1; i < gridX; i++) {
+  //     const x = -halfWidth + (width / gridX) * i;
+  //     const linePath = generateLinePath({ x, y: -halfHeight }, { x, y: halfHeight });
+  //     for (let j = 0; j < linePath.length - 1; j++) {
+  //       points.push(linePath[j], linePath[j + 1]);
+  //     }
+  //   }
 
-    for (let i = 1; i < gridY; i++) {
-      const y = -halfHeight + (height / gridY) * i;
-      const linePath = generateLinePath({ x: -halfWidth, y }, { x: halfWidth, y });
-      for (let j = 0; j < linePath.length - 1; j++) {
-        points.push(linePath[j], linePath[j + 1]);
-      }
-    }
+  //   for (let i = 1; i < gridY; i++) {
+  //     const y = -halfHeight + (height / gridY) * i;
+  //     const linePath = generateLinePath({ x: -halfWidth, y }, { x: halfWidth, y });
+  //     for (let j = 0; j < linePath.length - 1; j++) {
+  //       points.push(linePath[j], linePath[j + 1]);
+  //     }
+  //   }
 
-    if (points.length > 0) {
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 2 });
-      const lines = new THREE.LineSegments(geometry, material);
-      lines.name = 'splitLines';
-      sceneRef.current.add(lines);
-      splitLinesRef.current = lines;
-    }
-  }, [params]);
+  //   if (points.length > 0) {
+  //     const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  //     const material = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 30 });
+  //     const lines = new THREE.LineSegments(geometry, material);
+  //     lines.name = 'splitLines';
+  //     sceneRef.current.add(lines);
+  //     splitLinesRef.current = lines;
+  //   }
+  // }, [params]);
 
   // 清理拼图块
   const clearPuzzlePieces = useCallback(() => {
@@ -376,11 +376,11 @@ const ThreeViewer = forwardRef((props, ref) => {
 
       // 为 ExtrudeGeometry 创建材质数组
       // 索引0: 侧面, 索引1: 顶面/底面
-      const materials = [sideMaterial, topMaterial];
+      const materials = [topMaterial];
 
       const mesh = new THREE.Mesh(piece.geometry, materials);
       mesh.userData.pieceIndex = index;
-      mesh.userData.originalPosition = new THREE.Vector3(piece.centerX, piece.centerY, params.depth / 2);
+      mesh.userData.originalPosition = new THREE.Vector3(piece.centerX, piece.centerY, 0);
 
       // 应用变换
       const transform = pieceTransforms[index];
@@ -400,7 +400,7 @@ const ThreeViewer = forwardRef((props, ref) => {
       const transforms = pieces.map(piece => ({
         x: piece.centerX,
         y: piece.centerY,
-        z: params.depth / 2,
+        z: 0,
         rotation: 0
       }));
       dispatch(setPieceTransforms(transforms));
@@ -421,12 +421,13 @@ const ThreeViewer = forwardRef((props, ref) => {
     if (selectedPieceIndex >= 0 && pieceMeshesRef.current[selectedPieceIndex]) {
       const selectedMesh = pieceMeshesRef.current[selectedPieceIndex];
 
-      const outline = sceneRef.current?.getObjectByName('pieceOutline');
-      if (outline) {
-        outline.position.copy(selectedMesh.position);
-        outline.rotation.copy(selectedMesh.rotation);
+      const outline = sceneRef.current?.getObjectsByProperty('name', 'pieceOutline');
+      if (outline && outline.length > 0) {
+        outline.forEach(line => {
+          line.position.copy(selectedMesh.position);
+          line.rotation.copy(selectedMesh.rotation);
+        });
       }
-
       if (rotationHelperRef.current) {
         rotationHelperRef.current.position.x = selectedMesh.position.x;
         rotationHelperRef.current.position.y = selectedMesh.position.y;
@@ -439,11 +440,13 @@ const ThreeViewer = forwardRef((props, ref) => {
     if (!sceneRef.current) return;
 
     // 移除旧的选中轮廓
-    const oldOutline = sceneRef.current.getObjectByName('pieceOutline');
-    if (oldOutline) {
-      sceneRef.current.remove(oldOutline);
-      oldOutline.geometry.dispose();
-      oldOutline.material.dispose();
+    const oldOutline = sceneRef.current.getObjectsByProperty('name', 'pieceOutline');
+    if (oldOutline && oldOutline.length > 0) {
+      oldOutline.forEach(line => {
+        sceneRef.current.remove(line);
+        line.geometry.dispose();
+        line.material.dispose();
+      });
     }
 
     // 移除旧的旋转辅助器
@@ -454,17 +457,83 @@ const ThreeViewer = forwardRef((props, ref) => {
 
     if (selectedPieceIndex >= 0 && pieceMeshesRef.current[selectedPieceIndex]) {
       const selectedMesh = pieceMeshesRef.current[selectedPieceIndex];
+      const pieceInfo = piecesInfoRef.current[selectedPieceIndex];
+      const transform = pieceTransforms[selectedPieceIndex];
 
-      // 添加选中轮廓
-      const edges = new THREE.EdgesGeometry(selectedMesh.geometry);
-      const outline = new THREE.LineSegments(
-        edges,
-        new THREE.LineBasicMaterial({ color: 0x4a90d9, linewidth: 3 })
-      );
-      outline.position.copy(selectedMesh.position);
-      outline.rotation.copy(selectedMesh.rotation);
-      outline.name = 'pieceOutline';
-      sceneRef.current.add(outline);
+      const { depth } = params;
+      const angle = transform?.rotation || 0;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+
+      // 使用记录的 pts 绘制底部轮廓线
+      if (pieceInfo.pts && pieceInfo.pts.length > 0) {
+        const bottomPositions = [];
+        pieceInfo.pts.forEach(p => {
+          const wx = transform.x + p.x * cos - p.y * sin;
+          const wy = transform.y + p.x * sin + p.y * cos;
+          bottomPositions.push(wx, wy, 0); // 顶部高亮
+        });
+        // 闭合路径
+        const firstP = pieceInfo.pts[0];
+        const wx = transform.x + firstP.x * cos - firstP.y * sin;
+        const wy = transform.y + firstP.x * sin + firstP.y * cos;
+        bottomPositions.push(wx, wy, 0);
+        const topPositions = bottomPositions.map((v, i) => (i % 3 === 2 ? v + depth : v)); // 顶部位置
+
+        const lineGeometry = new LineGeometry();
+        lineGeometry.setPositions(bottomPositions);
+        const topLineGeometry = new LineGeometry();
+        topLineGeometry.setPositions(topPositions);
+        
+        const lineMaterial = new LineMaterial({
+          color: 0x4a90d9,
+          linewidth: 5, // 单位是像素
+          resolution: new THREE.Vector2(
+            containerRef.current.clientWidth,
+            containerRef.current.clientHeight
+          )
+        });
+        
+        const outline = new Line2(lineGeometry, lineMaterial);
+        outline.name = 'pieceOutline';
+        outline.computeLineDistances(); // Line2 需要计算距离
+        sceneRef.current.add(outline);
+
+        const topOutline = new Line2(topLineGeometry, lineMaterial);
+        topOutline.name = 'pieceOutline';
+        topOutline.computeLineDistances(); // Line2 需要计算距离
+        sceneRef.current.add(topOutline);
+      }
+
+      // 使用 cornerPts 在四个角上绘制竖直高亮线
+      if (pieceInfo.cornerPts && pieceInfo.cornerPts.length >= 4) {
+        pieceInfo.cornerPts.forEach(corner => {
+          const wx = transform.x + corner.x * cos - corner.y * sin;
+          const wy = transform.y + corner.x * sin + corner.y * cos;
+
+          const verticalPositions = [
+            wx, wy, 0,                 // 底部
+            wx, wy, depth        // 顶部
+          ];
+
+          const vertLineGeometry = new LineGeometry();
+          vertLineGeometry.setPositions(verticalPositions);
+
+          const vertLineMaterial = new LineMaterial({
+            color: 0x4a90d9,
+            linewidth: 5,
+            resolution: new THREE.Vector2(
+              containerRef.current.clientWidth,
+              containerRef.current.clientHeight
+            )
+          });
+
+          const vertLine = new Line2(vertLineGeometry, vertLineMaterial);
+          vertLine.computeLineDistances();
+          vertLine.name = 'pieceOutline';
+          sceneRef.current.add(vertLine);
+        });
+      }
 
       // 添加旋转辅助器（圆环）
       const rotationRing = new THREE.RingGeometry(
@@ -485,7 +554,7 @@ const ThreeViewer = forwardRef((props, ref) => {
       rotationHelperRef.current = rotationHelper;
       sceneRef.current.add(rotationHelper);
     }
-  }, [selectedPieceIndex, params]);
+  }, [selectedPieceIndex, params, pieceTransforms]);
 
   // 更新吸附高亮
   const updateSnapHighlights = useCallback(() => {
@@ -515,63 +584,104 @@ const ThreeViewer = forwardRef((props, ref) => {
       const intensity = calculateEdgeHighlightIntensity(target.distance, snapDistance * 2);
       if (intensity <= 0) return;
 
-      // 创建高亮线
+      // 获取拼图块信息
       const pieceInfo = piecesInfoRef.current[selectedPieceIndex];
       const neighborInfo = piecesInfoRef.current[target.neighborIndex];
       const transform = pieceTransforms[selectedPieceIndex];
 
-      const { width, height, gridX, gridY, depth } = params;
-      const pieceW = width / gridX;
-      const pieceH = height / gridY;
-
-      let edgePoints = [];
-      const dx = pieceInfo.col - neighborInfo.col;
-      const dy = pieceInfo.row - neighborInfo.row;
-
-      if (dx === 1) {
-        edgePoints = [
-          new THREE.Vector3(-pieceW / 2, -pieceH / 2, depth + 0.5),
-          new THREE.Vector3(-pieceW / 2, pieceH / 2, depth + 0.5)
-        ];
-      } else if (dx === -1) {
-        edgePoints = [
-          new THREE.Vector3(pieceW / 2, -pieceH / 2, depth + 0.5),
-          new THREE.Vector3(pieceW / 2, pieceH / 2, depth + 0.5)
-        ];
-      } else if (dy === 1) {
-        edgePoints = [
-          new THREE.Vector3(-pieceW / 2, -pieceH / 2, depth + 0.5),
-          new THREE.Vector3(pieceW / 2, -pieceH / 2, depth + 0.5)
-        ];
-      } else if (dy === -1) {
-        edgePoints = [
-          new THREE.Vector3(-pieceW / 2, pieceH / 2, depth + 0.5),
-          new THREE.Vector3(pieceW / 2, pieceH / 2, depth + 0.5)
-        ];
-      }
-
-      // 应用变换
+      const { depth } = params;
       const angle = transform.rotation || 0;
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
 
-      const worldPoints = edgePoints.map(p => {
+      // 使用记录的 cornerPts 来确定边缘点
+      const dx = pieceInfo.col - neighborInfo.col;
+      const dy = pieceInfo.row - neighborInfo.row;
+
+      // cornerPts 顺序: [左下, 右下, 右上, 左上]
+      const cornerPts = pieceInfo.cornerPts;
+      if (!cornerPts || cornerPts.length < 4) return;
+
+      let edgeCorners = [];
+      if (dx === 1) {
+        // 左边缘: 左下 -> 左上
+        edgeCorners = [cornerPts[0], cornerPts[3]];
+      } else if (dx === -1) {
+        // 右边缘: 右下 -> 右上
+        edgeCorners = [cornerPts[1], cornerPts[2]];
+      } else if (dy === 1) {
+        // 下边缘: 左下 -> 右下
+        edgeCorners = [cornerPts[0], cornerPts[1]];
+      } else if (dy === -1) {
+        // 上边缘: 左上 -> 右上
+        edgeCorners = [cornerPts[3], cornerPts[2]];
+      }
+
+      if (edgeCorners.length !== 2) return;
+
+      // 将局部坐标转换为世界坐标并创建水平高亮线
+      const worldPoints = edgeCorners.map(p => {
         const x = transform.x + p.x * cos - p.y * sin;
         const y = transform.y + p.x * sin + p.y * cos;
-        return new THREE.Vector3(x, y, p.z);
+        return new THREE.Vector3(x, y, depth + 0.5);
       });
 
-      const geometry = new THREE.BufferGeometry().setFromPoints(worldPoints);
-      const material = new THREE.LineBasicMaterial({
-        color: new THREE.Color(1, 1 - intensity, 0), // 黄色到橙色
-        linewidth: 4,
-        transparent: true,
-        opacity: 0.5 + intensity * 0.5
+      // 绘制水平高亮线
+      const positions = [];
+      worldPoints.forEach(p => {
+        positions.push(p.x, p.y, p.z);
       });
-      const line = new THREE.Line(geometry, material);
+      
+      const lineGeometry = new LineGeometry();
+      lineGeometry.setPositions(positions);
+      
+      const lineMaterial = new LineMaterial({
+        color: new THREE.Color(1, 1 - intensity, 0), // 黄色到橙色
+        linewidth: 8, // 单位是像素
+        transparent: true,
+        opacity: 0.5 + intensity * 0.5,
+        resolution: new THREE.Vector2(
+          containerRef.current.clientWidth,
+          containerRef.current.clientHeight
+        )
+      });
+      
+      const line = new Line2(lineGeometry, lineMaterial);
+      line.computeLineDistances();
       line.name = 'snapHighlight';
       sceneRef.current.add(line);
       highlightLinesRef.current.push(line);
+
+      // 在四个角上绘制竖直高亮线（从 z=0 到 z=depth+0.5）
+      edgeCorners.forEach(corner => {
+        const wx = transform.x + corner.x * cos - corner.y * sin;
+        const wy = transform.y + corner.x * sin + corner.y * cos;
+
+        const verticalPositions = [
+          wx, wy, 0,                 // 底部
+          wx, wy, depth + 0.5        // 顶部
+        ];
+
+        const vertLineGeometry = new LineGeometry();
+        vertLineGeometry.setPositions(verticalPositions);
+
+        const vertLineMaterial = new LineMaterial({
+          color: new THREE.Color(1, 1 - intensity, 0),
+          linewidth: 8,
+          transparent: true,
+          opacity: 0.5 + intensity * 0.5,
+          resolution: new THREE.Vector2(
+            containerRef.current.clientWidth,
+            containerRef.current.clientHeight
+          )
+        });
+
+        const vertLine = new Line2(vertLineGeometry, vertLineMaterial);
+        vertLine.computeLineDistances();
+        vertLine.name = 'snapHighlightVertical';
+        sceneRef.current.add(vertLine);
+        highlightLinesRef.current.push(vertLine);
+      });
     });
   }, [selectedPieceIndex, pieceTransforms, snapDistance, params]);
 
@@ -588,14 +698,14 @@ const ThreeViewer = forwardRef((props, ref) => {
       return {
         x: Math.cos(angle) * radius,
         y: Math.sin(angle) * radius,
-        z: params.depth / 2,
+        z: 0,
         rotation: Math.random() * Math.PI * 2
       };
     });
 
     dispatch(setPieceTransforms(newTransforms));
     dispatch(setPuzzleScattered(true));
-    dispatch(setSelectedPieceIndex(-1));
+    // dispatch(setSelectedPieceIndex(-1));
   }, [params, dispatch]);
 
   // 拼合拼图
@@ -605,18 +715,21 @@ const ThreeViewer = forwardRef((props, ref) => {
     const newTransforms = piecesInfoRef.current.map(piece => ({
       x: piece.centerX,
       y: piece.centerY,
-      z: params.depth / 2,
+      z: 0,
       rotation: 0
     }));
 
     dispatch(setPieceTransforms(newTransforms));
     dispatch(setPuzzleScattered(false));
-    dispatch(setSelectedPieceIndex(-1));
+    // dispatch(setSelectedPieceIndex(-1));
   }, [params, dispatch]);
 
   // 鼠标事件处理
   const handleMouseDown = useCallback((event) => {
-    if (!gameMode || !rendererRef.current || !cameraRef.current) return;
+    if (!rendererRef.current || !cameraRef.current) return;
+
+    // 记录鼠标按下位置
+    mouseDownPosRef.current = { x: event.clientX, y: event.clientY };
 
     const rect = rendererRef.current.domElement.getBoundingClientRect();
     const mouse = new THREE.Vector2(
@@ -676,10 +789,8 @@ const ThreeViewer = forwardRef((props, ref) => {
           );
         }
       }
-    } else {
-      dispatch(setSelectedPieceIndex(-1));
     }
-  }, [gameMode, selectedPieceIndex, pieceTransforms, dispatch]);
+  }, [selectedPieceIndex, pieceTransforms, dispatch]);
 
   const handleMouseMove = useCallback((event) => {
     if (!isDraggingRef.current || !rendererRef.current || !cameraRef.current) return;
@@ -725,8 +836,41 @@ const ThreeViewer = forwardRef((props, ref) => {
     }
   }, [selectedPieceIndex, pieceTransforms, dispatch]);
 
-  const handleMouseUp = useCallback(() => {
-    if (!isDraggingRef.current) return;
+  const handleMouseUp = useCallback((event) => {
+    // 计算鼠标移动距离
+    const dx = event.clientX - mouseDownPosRef.current.x;
+    const dy = event.clientY - mouseDownPosRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // 如果移动距离小于5像素，认为是点击；否则是拖动
+    const isClick = distance < 5;
+
+    if (!isDraggingRef.current) {
+      // 没有拖动拼图块，检查是否为点击空白区域
+      if (isClick) {
+        // 这是一个点击操作，检查是否点击了空白区域
+        const rect = rendererRef.current.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+          ((event.clientX - rect.left) / rect.width) * 2 - 1,
+          -((event.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, cameraRef.current);
+
+        // 检查是否点击了拼图块或旋转辅助器
+        const intersects = raycaster.intersectObjects(pieceMeshesRef.current);
+        const clickedHelper = rotationHelperRef.current && 
+          raycaster.intersectObject(rotationHelperRef.current).length > 0;
+
+        if (intersects.length === 0 && !clickedHelper) {
+          // 点击了空白区域，清除选中
+          dispatch(setSelectedPieceIndex(-1));
+        }
+      }
+      // 如果是拖动（旋转画布），不做任何操作
+      return;
+    }
 
     // 检查吸附
     if (isDraggingRef.current === 'drag' && selectedPieceIndex >= 0) {
@@ -755,25 +899,23 @@ const ThreeViewer = forwardRef((props, ref) => {
   }, [selectedPieceIndex, pieceTransforms, snapDistance, dispatch]);
 
   // 普通模式点击处理
-  const handleClick = useCallback((event) => {
-    if (gameMode) return;
+  // const handleClick = useCallback((event) => {
+  //   const rect = rendererRef.current.domElement.getBoundingClientRect();
+  //   const mouse = new THREE.Vector2(
+  //     ((event.clientX - rect.left) / rect.width) * 2 - 1,
+  //     -((event.clientY - rect.top) / rect.height) * 2 + 1
+  //   );
 
-    const rect = rendererRef.current.domElement.getBoundingClientRect();
-    const mouse = new THREE.Vector2(
-      ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      -((event.clientY - rect.top) / rect.height) * 2 + 1
-    );
+  //   const raycaster = new THREE.Raycaster();
+  //   raycaster.setFromCamera(mouse, cameraRef.current);
+  //   const intersects = raycaster.intersectObjects(sceneRef.current.children, true);
 
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, cameraRef.current);
-    const intersects = raycaster.intersectObjects(sceneRef.current.children, true);
+  //   const cubeIntersect = intersects.find(intersect =>
+  //     intersect.object === cubeRef.current
+  //   );
 
-    const cubeIntersect = intersects.find(intersect =>
-      intersect.object === cubeRef.current
-    );
-
-    dispatch(setModelSelected(!!cubeIntersect));
-  }, [gameMode, dispatch]);
+  //   dispatch(setModelSelected(!!cubeIntersect));
+  // }, [dispatch]);
 
   // 初始化场景
   useEffect(() => {
@@ -786,96 +928,86 @@ const ThreeViewer = forwardRef((props, ref) => {
     const renderer = rendererRef.current;
     if (!renderer) return;
 
-    renderer.domElement.addEventListener('click', handleClick);
+    // renderer.domElement.addEventListener('click', handleClick);
     renderer.domElement.addEventListener('mousedown', handleMouseDown);
     renderer.domElement.addEventListener('mousemove', handleMouseMove);
     renderer.domElement.addEventListener('mouseup', handleMouseUp);
     renderer.domElement.addEventListener('mouseleave', handleMouseUp);
 
     return () => {
-      renderer.domElement.removeEventListener('click', handleClick);
+      // renderer.domElement.removeEventListener('click', handleClick);
       renderer.domElement.removeEventListener('mousedown', handleMouseDown);
       renderer.domElement.removeEventListener('mousemove', handleMouseMove);
       renderer.domElement.removeEventListener('mouseup', handleMouseUp);
       renderer.domElement.removeEventListener('mouseleave', handleMouseUp);
     };
-  }, [handleClick, handleMouseDown, handleMouseMove, handleMouseUp]);
+  }, [handleMouseDown, handleMouseMove, handleMouseUp]);
 
   // 游戏模式切换
   useEffect(() => {
-    if (gameMode) {
-      // 清理立方体，创建拼图块
-      if (cubeRef.current) {
-        sceneRef.current.remove(cubeRef.current);
-        cubeRef.current.geometry.dispose();
-        cubeRef.current.material.forEach(m => {
-          if (m.map) m.map.dispose();
-          m.dispose();
-        });
-        cubeRef.current = null;
-      }
-      if (splitLinesRef.current) {
-        sceneRef.current.remove(splitLinesRef.current);
-        splitLinesRef.current.geometry.dispose();
-        splitLinesRef.current.material.dispose();
-        splitLinesRef.current = null;
-      }
-      createPuzzlePieces();
-    } else {
-      // 清理拼图块，创建立方体
-      clearPuzzlePieces();
-      createCube();
+    // 清理立方体，创建拼图块
+    if (cubeRef.current) {
+      sceneRef.current.remove(cubeRef.current);
+      cubeRef.current.geometry.dispose();
+      cubeRef.current.material.forEach(m => {
+        if (m.map) m.map.dispose();
+        m.dispose();
+      });
+      cubeRef.current = null;
     }
-  }, [gameMode, createCube, createPuzzlePieces, clearPuzzlePieces]);
+    if (splitLinesRef.current) {
+      sceneRef.current.remove(splitLinesRef.current);
+      splitLinesRef.current.geometry.dispose();
+      splitLinesRef.current.material.dispose();
+      splitLinesRef.current = null;
+    }
+    createPuzzlePieces();
+    // 清理拼图块，创建立方体
+    // clearPuzzlePieces();
+    // createCube();
+  }, [createPuzzlePieces, clearPuzzlePieces]);
 
   // 参数变化时更新
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    if (gameMode) {
-      // 游戏模式下重新生成拼图块
-      dispatch(setPieceTransforms([]));
-      createPuzzlePieces();
-    } else {
-      createCube();
-    }
-  }, [params, selectedImage, gameMode, createCube, createPuzzlePieces, dispatch]);
+    // 游戏模式下重新生成拼图块
+    // dispatch(setPieceTransforms([]));
+    createPuzzlePieces();
+    // createCube();
+  }, [params, selectedImage, createPuzzlePieces, dispatch]);
 
   // 更新拼图块位置
   useEffect(() => {
-    if (gameMode) {
-      updatePiecePositions();
-      updateSnapHighlights();
-    }
-  }, [pieceTransforms, gameMode, updatePiecePositions, updateSnapHighlights]);
+    updatePiecePositions();
+    updateSnapHighlights();
+  }, [pieceTransforms, updatePiecePositions, updateSnapHighlights]);
 
   // 更新选中高亮
   useEffect(() => {
-    if (gameMode) {
-      updateSelectionHighlight();
-    }
-  }, [selectedPieceIndex, gameMode, updateSelectionHighlight]);
+    updateSelectionHighlight();
+  }, [selectedPieceIndex, updateSelectionHighlight]);
 
   // 清理选中效果（非游戏模式）
-  useEffect(() => {
-    if (!sceneRef.current || gameMode) return;
+  // useEffect(() => {
+  //   if (!sceneRef.current) return;
 
-    const outline = sceneRef.current.getObjectByName('selectionOutline');
-    if (outline && !modelSelected) {
-      sceneRef.current.remove(outline);
-      outline.geometry.dispose();
-      outline.material.dispose();
-    } else if (!outline && modelSelected && cubeRef.current) {
-      const edges = new THREE.EdgesGeometry(cubeRef.current.geometry);
-      const line = new THREE.LineSegments(
-        edges,
-        new THREE.LineBasicMaterial({ color: 0x4a90d9, linewidth: 2 })
-      );
-      line.position.copy(cubeRef.current.position);
-      line.name = 'selectionOutline';
-      sceneRef.current.add(line);
-    }
-  }, [modelSelected, gameMode]);
+  //   const outline = sceneRef.current.getObjectByName('selectionOutline');
+  //   if (outline && !modelSelected) {
+  //     sceneRef.current.remove(outline);
+  //     outline.geometry.dispose();
+  //     outline.material.dispose();
+  //   } else if (!outline && modelSelected && cubeRef.current) {
+  //     const edges = new THREE.EdgesGeometry(cubeRef.current.geometry);
+  //     const line = new THREE.LineSegments(
+  //       edges,
+  //       new THREE.LineBasicMaterial({ color: 0x4a90d9, linewidth: 30 })
+  //     );
+  //     line.position.copy(cubeRef.current.position);
+  //     line.name = 'selectionOutline';
+  //     sceneRef.current.add(line);
+  //   }
+  // }, [modelSelected]);
 
   return (
     <div className="three-viewer" ref={containerRef}>
@@ -886,26 +1018,26 @@ const ThreeViewer = forwardRef((props, ref) => {
         <span className="info-item">
           分割: {params.gridX} × {params.gridY}
         </span>
-        {gameMode && (
+        {/* {gameMode && (
           <span className="info-item game-mode">游戏模式</span>
         )}
         {gameMode && selectedPieceIndex >= 0 && (
           <span className="info-item selected">
             选中拼图块 #{selectedPieceIndex + 1}
           </span>
-        )}
-        {!gameMode && modelSelected && (
+        )} */}
+        {/* {modelSelected && (
           <span className="info-item selected">已选中模型</span>
-        )}
+        )} */}
       </div>
 
-      <div className="viewer-controls-hint">
+      {/* <div className="viewer-controls-hint">
         {gameMode ? (
           '点击选中拼图块 | 拖动移动 | 点击橙色环拖动旋转 | 右键平移视角'
         ) : (
           '鼠标左键拖动旋转 | 滚轮缩放 | 右键拖动平移 | 点击选中模型'
         )}
-      </div>
+      </div> */}
 
       {/* 游戏控制组件 */}
       <GameControls onScatter={handleScatter} onAssemble={handleAssemble} />

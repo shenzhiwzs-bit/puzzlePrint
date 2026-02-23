@@ -11,13 +11,10 @@ const ImagePreview = () => {
   const dispatch = useDispatch();
   const previewImage = useSelector(selectPreviewImage);
 
-  // 如果没有预览图片，不渲染
-  if (!previewImage) return null;
-
   // 关闭预览
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     dispatch(closePreview());
-  };
+  }, [dispatch]);
 
   // 点击背景关闭
   const handleBackdropClick = (e) => {
@@ -28,6 +25,8 @@ const ImagePreview = () => {
 
   // 键盘ESC关闭
   React.useEffect(() => {
+    if (!previewImage) return;
+    
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         handleClose();
@@ -35,7 +34,10 @@ const ImagePreview = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [previewImage, handleClose]);
+
+  // 如果没有预览图片，不渲染
+  if (!previewImage) return null;
 
   return (
     <div className="image-preview-modal" onClick={handleBackdropClick}>

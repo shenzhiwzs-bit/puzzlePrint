@@ -182,7 +182,7 @@ const ImageManager = () => {
               title={image.name}
             >
               <img
-                src={image.thumbnail}
+                src={image.url}
                 alt={image.name}
                 className="image-thumbnail"
               />
